@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   Star, Trash2, Edit2, Check, X, MessageSquare,
-  Filter, RotateCcw, Package, Phone, MapPin,
+  Filter, RotateCcw,  Phone, MapPin,
   ChevronDown, ChevronUp, RefreshCw, Image, AlertTriangle
 } from 'lucide-react';
 import { getAdminReviews, updateAdminReview, deleteAdminReview } from '../../utils/api';

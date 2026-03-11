@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Zap, Plus, Trash2, RefreshCw, CheckCircle, Clock, Edit2, X } from 'lucide-react';
+import { Zap, Trash2, RefreshCw, CheckCircle, Edit2, X } from 'lucide-react';
 import API from '../../utils/api';
 import toast from 'react-hot-toast';
 

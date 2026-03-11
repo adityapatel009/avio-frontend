@@ -4,7 +4,7 @@ import {
   Package, Truck, CheckCircle, XCircle, Clock,
   RefreshCw, Copy, ShoppingBag, Trash2
 } from 'lucide-react';
-import { adminGetOrders, adminUpdateOrder } from '../../utils/api';
+import API, { adminGetOrders, adminUpdateOrder } from '../../utils/api';
 import toast from 'react-hot-toast';
 
 const statuses = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
@@ -382,7 +382,8 @@ const AdminOrders = () => {
   const [deleting, setDeleting] = useState(null);
   const [counts, setCounts] = useState({});
 
-  useEffect(() => { fetchOrders(); }, [filter]);
+ // eslint-disable-next-line react-hooks/exhaustive-deps
+useEffect(() => { fetchOrders(); }, [filter]);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -418,15 +419,10 @@ const AdminOrders = () => {
     }
   };
 
-  const handleDelete = async (orderId) => {
+ const handleDelete = async (orderId) => {
     setDeleting(orderId);
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/orders/admin/${orderId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error();
+      await API.delete(`/orders/admin/${orderId}`);
       toast.success('Order delete ho gaya! 🗑️');
       setOrders(prev => prev.filter(o => o._id !== orderId));
       setCounts(prev => ({ ...prev, All: (prev.All || 1) - 1 }));
