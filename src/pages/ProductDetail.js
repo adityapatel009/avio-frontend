@@ -13,6 +13,48 @@ import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
 import toast from 'react-hot-toast';
 
+// ─── COLOR VARIANTS ───────────────────────────────────────
+const ColorVariants = ({ variants, currentId }) => {
+  const navigate = useNavigate();
+  if (!variants || variants.length === 0) return null;
+
+  return (
+    <div className="mb-5">
+      <p className="text-gray-400 text-sm font-semibold mb-3 flex items-center gap-2">
+        🎨 Also available in:
+      </p>
+      <div className="flex items-center gap-2 flex-wrap">
+        {/* Current product dot */}
+        <div className="flex flex-col items-center gap-1">
+          <div className="w-8 h-8 rounded-full border-2 border-gold ring-2 ring-gold/30"
+            style={{ backgroundColor: '#6C3AE8' }} />
+          <span className="text-gold text-[10px] font-semibold">This</span>
+        </div>
+
+        {/* Variant dots */}
+        {variants.map((v, i) => {
+          const prod = v.productId;
+          if (!prod?._id) return null;
+          return (
+            <button key={i} onClick={() => navigate(`/product/${prod._id}`)}
+              className="flex flex-col items-center gap-1 group">
+              <div className="relative w-8 h-8 rounded-full border-2 border-border group-hover:border-gold transition-all duration-200 group-hover:scale-110"
+                style={{ backgroundColor: v.colorCode || '#888' }}>
+                {prod.images?.[0] && (
+                  <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-16 h-16 rounded-xl overflow-hidden border-2 border-gold shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 pointer-events-none">
+                    <img src={prod.images[0]} alt={v.color} className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+              <span className="text-gray-400 text-[10px] group-hover:text-gold transition">{v.color}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 // ─── STAR DISPLAY ────────────────────────────────────────
 const StarDisplay = ({ rating, size = 14 }) => (
   <div className="flex items-center gap-0.5">
@@ -789,7 +831,7 @@ const ProductDetail = () => {
             {product.originalPrice > product.sellingPrice && (
               <p className="text-green-400 text-sm mb-4">🎉 You save ₹{product.originalPrice - product.sellingPrice}!</p>
             )}
-
+              <ColorVariants variants={product.variants} currentId={product._id} />
             <StockUrgency stock={product.stock} />
             <SizeSelector product={product} selectedSize={selectedSize} onChange={setSelectedSize} />
 

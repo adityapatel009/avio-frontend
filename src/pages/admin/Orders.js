@@ -420,18 +420,19 @@ useEffect(() => { fetchOrders(); }, [filter]);
   };
 
  const handleDelete = async (orderId) => {
-    setDeleting(orderId);
-    try {
-      await API.delete(`/orders/admin/${orderId}`);
-      toast.success('Order delete ho gaya! 🗑️');
-      setOrders(prev => prev.filter(o => o._id !== orderId));
-      setCounts(prev => ({ ...prev, All: (prev.All || 1) - 1 }));
-    } catch {
-      toast.error('Delete nahi hua!');
-    } finally {
-      setDeleting(null);
-    }
-  };
+  setDeleting(orderId);
+  try {
+    const res = await API.delete(`/orders/admin/${orderId}`);
+    toast.success('Order delete ho gaya! 🗑️');
+    setOrders(prev => prev.filter(o => o._id !== orderId));
+    setCounts(prev => ({ ...prev, All: (prev.All || 1) - 1 }));
+  } catch (err) {
+    console.error('Delete error:', err.response?.status, err.response?.data);
+    toast.error(`Error: ${err.response?.data?.message || err.message}`);
+  } finally {
+    setDeleting(null);
+  }
+};
 
   const filtered = orders.filter(o => {
     if (!search) return true;

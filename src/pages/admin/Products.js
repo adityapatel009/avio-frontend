@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   Plus, Edit, Trash2, X, Search, Check, Package,
-  Upload, Link, Loader, Image
+  Upload, Link, Loader, Image, Palette
 } from 'lucide-react';
 import { getProducts, adminAddProduct, adminUpdateProduct, adminDeleteProduct } from '../../utils/api';
 import axios from 'axios';
@@ -33,6 +33,25 @@ const SIZE_OPTIONS = {
   none:      [],
 };
 
+// Common colors for quick selection
+const COMMON_COLORS = [
+  { name: 'Red', code: '#EF4444' },
+  { name: 'Blue', code: '#3B82F6' },
+  { name: 'Green', code: '#22C55E' },
+  { name: 'Yellow', code: '#EAB308' },
+  { name: 'Pink', code: '#EC4899' },
+  { name: 'Purple', code: '#A855F7' },
+  { name: 'Orange', code: '#F97316' },
+  { name: 'Black', code: '#171717' },
+  { name: 'White', code: '#F5F5F5' },
+  { name: 'Grey', code: '#6B7280' },
+  { name: 'Brown', code: '#92400E' },
+  { name: 'Navy', code: '#1E3A5F' },
+  { name: 'Maroon', code: '#7F1D1D' },
+  { name: 'Cream', code: '#FFFDD0' },
+  { name: 'Peach', code: '#FFCBA4' },
+];
+
 // ─── SIZE SELECTOR ────────────────────────────────────────
 const SizeSelector = ({ sizeType, selected, onChange }) => {
   const options = SIZE_OPTIONS[sizeType] || [];
@@ -62,7 +81,7 @@ const SizeSelector = ({ sizeType, selected, onChange }) => {
   );
 };
 
-// ─── MULTI IMAGE UPLOADER — URL + CLOUDINARY ─────────────
+// ─── MULTI IMAGE UPLOADER ─────────────────────────────────
 const MultiImageUploader = ({ value = [], onChange, max = 5 }) => {
   const [mode, setMode] = useState('url');
   const [urlInput, setUrlInput] = useState('');
@@ -83,10 +102,11 @@ const MultiImageUploader = ({ value = [], onChange, max = 5 }) => {
     if (value.length + files.length > max) return toast.error(`Maximum ${max} images allowed!`);
     setUploading(true);
     try {
-      const token = localStorage.getItem('crownbay_token');
+      const token = localStorage.getItem('token');
       const formData = new FormData();
       files.forEach(f => formData.append('images', f));
-      const res = await axios.post('http://localhost:5000/api/upload/images', formData, {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const res = await axios.post(`${apiUrl}/upload/images`, formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
       onChange([...value, ...res.data.images.map(i => i.url)]);
@@ -116,8 +136,6 @@ const MultiImageUploader = ({ value = [], onChange, max = 5 }) => {
         </label>
         {value.length > 0 && <span className="text-xs text-gray-500">Pehli image = main image</span>}
       </div>
-
-      {/* Mode Toggle */}
       <div className="flex bg-secondary border border-border rounded-xl p-1 w-fit">
         <button type="button" onClick={() => setMode('url')}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${mode === 'url' ? 'bg-gold text-black' : 'text-gray-400 hover:text-white'}`}>
@@ -128,8 +146,6 @@ const MultiImageUploader = ({ value = [], onChange, max = 5 }) => {
           <Upload size={12} /> Upload
         </button>
       </div>
-
-      {/* URL Mode */}
       {mode === 'url' && value.length < max && (
         <div>
           <div className="flex gap-2">
@@ -145,8 +161,6 @@ const MultiImageUploader = ({ value = [], onChange, max = 5 }) => {
           <p className="text-gray-500 text-xs mt-1">💡 Meesho image pe right-click → "Copy image address" → yahan paste karo</p>
         </div>
       )}
-
-      {/* Upload Mode */}
       {mode === 'upload' && value.length < max && (
         <div>
           <input type="file" ref={fileRef} accept="image/*" multiple onChange={handleFilesUpload} className="hidden" />
@@ -154,13 +168,11 @@ const MultiImageUploader = ({ value = [], onChange, max = 5 }) => {
             className="w-full border-2 border-dashed border-border hover:border-gold/50 rounded-xl p-5 flex flex-col items-center gap-2 transition disabled:opacity-50">
             {uploading
               ? <><Loader size={24} className="text-gold animate-spin" /><span className="text-gray-400 text-sm">Uploading to Cloudinary...</span></>
-              : <><Upload size={24} className="text-gray-500" /><span className="text-gray-400 text-sm">Click karke images choose karo</span><span className="text-gray-600 text-xs">JPG, PNG, WEBP • Max 5MB each • Multiple select kar sakte ho</span></>
+              : <><Upload size={24} className="text-gray-500" /><span className="text-gray-400 text-sm">Click karke images choose karo</span><span className="text-gray-600 text-xs">JPG, PNG, WEBP • Max 5MB each</span></>
             }
           </button>
         </div>
       )}
-
-      {/* Image Grid Preview */}
       {value.length > 0 && (
         <div className="grid grid-cols-5 gap-2 mt-2">
           {value.map((img, idx) => (
@@ -194,7 +206,6 @@ const MultiImageUploader = ({ value = [], onChange, max = 5 }) => {
           )}
         </div>
       )}
-
       {value.length === 0 && (
         <div className="flex items-center gap-2 text-gray-600 text-xs">
           <Image size={14} />
@@ -205,13 +216,177 @@ const MultiImageUploader = ({ value = [], onChange, max = 5 }) => {
   );
 };
 
+// ─── VARIANTS TAB ─────────────────────────────────────────
+const VariantsTab = ({ currentProductId, variants, onChange, allProducts }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedColor, setSelectedColor] = useState('');
+  const [customColor, setCustomColor] = useState('');
+  const [customColorCode, setCustomColorCode] = useState('#000000');
+  const [selectedProductId, setSelectedProductId] = useState('');
+
+  // Products already linked as variants
+  const linkedIds = variants.map(v => v.productId?._id || v.productId);
+
+  // Filter products for search — exclude current product and already linked ones
+  const searchResults = allProducts.filter(p => {
+    if (p._id === currentProductId) return false;
+    if (linkedIds.includes(p._id)) return false;
+    if (!searchQuery) return false;
+    return p.name.toLowerCase().includes(searchQuery.toLowerCase());
+  }).slice(0, 5);
+
+  const addVariant = () => {
+    const colorName = selectedColor || customColor;
+    const colorCode = COMMON_COLORS.find(c => c.name === selectedColor)?.code || customColorCode;
+    if (!colorName) return toast.error('Color name daalo!');
+    if (!selectedProductId) return toast.error('Product select karo!');
+    if (variants.find(v => (v.productId?._id || v.productId) === selectedProductId))
+      return toast.error('Yeh product already linked hai!');
+
+    const product = allProducts.find(p => p._id === selectedProductId);
+    onChange([...variants, {
+      color: colorName,
+      colorCode: colorCode,
+      productId: { _id: selectedProductId, name: product?.name, images: product?.images }
+    }]);
+    setSelectedColor('');
+    setCustomColor('');
+    setCustomColorCode('#000000');
+    setSelectedProductId('');
+    setSearchQuery('');
+    toast.success(`${colorName} variant add ho gaya!`);
+  };
+
+  const removeVariant = (idx) => {
+    onChange(variants.filter((_, i) => i !== idx));
+  };
+
+  return (
+    <div className="space-y-5">
+      <div className="bg-secondary border border-border rounded-xl p-4">
+        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Variants kya hain?</p>
+        <p className="text-gray-300 text-sm">Same design ke alag color products ko link karo. Customer ko "Also available in" section dikhega.</p>
+      </div>
+
+      {/* Existing Variants */}
+      {variants.length > 0 && (
+        <div>
+          <p className="text-gray-400 text-xs uppercase tracking-wider mb-3">Linked Variants ({variants.length})</p>
+          <div className="space-y-2">
+            {variants.map((v, idx) => {
+              const prod = v.productId;
+              return (
+                <div key={idx} className="flex items-center gap-3 bg-secondary border border-border rounded-xl p-3">
+                  <div className="w-8 h-8 rounded-full border-2 border-border shrink-0"
+                    style={{ backgroundColor: v.colorCode || '#888' }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-sm font-medium">{v.color}</p>
+                    <p className="text-gray-400 text-xs line-clamp-1">{prod?.name || 'Product'}</p>
+                  </div>
+                  {prod?.images?.[0] && (
+                    <img src={prod.images[0]} alt="" className="w-10 h-10 object-cover rounded-lg border border-border shrink-0" />
+                  )}
+                  <button type="button" onClick={() => removeVariant(idx)}
+                    className="w-7 h-7 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center justify-center hover:bg-red-500/20 transition shrink-0">
+                    <X size={13} className="text-red-400" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Add New Variant */}
+      <div className="border border-border rounded-xl p-4 space-y-4">
+        <p className="text-white font-semibold text-sm flex items-center gap-2">
+          <Palette size={16} className="text-gold" /> Naya Variant Add Karo
+        </p>
+
+        {/* Step 1 — Color select */}
+        <div>
+          <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">Step 1 — Color choose karo</p>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {COMMON_COLORS.map(c => (
+              <button key={c.name} type="button"
+                onClick={() => { setSelectedColor(c.name); setCustomColor(''); }}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition ${
+                  selectedColor === c.name ? 'border-gold bg-gold/10 text-gold' : 'border-border text-gray-300 hover:border-gold/40'
+                }`}>
+                <div className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: c.code }} />
+                {c.name}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-500 text-xs">Ya custom:</span>
+            <input value={customColor} onChange={e => { setCustomColor(e.target.value); setSelectedColor(''); }}
+              placeholder="Color name (e.g. Mustard)"
+              className="flex-1 bg-secondary border border-border rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-gold transition placeholder-gray-600" />
+            <input type="color" value={customColorCode} onChange={e => setCustomColorCode(e.target.value)}
+              className="w-10 h-10 rounded-xl border border-border cursor-pointer bg-secondary" />
+          </div>
+          {(selectedColor || customColor) && (
+            <div className="flex items-center gap-2 mt-2 bg-gold/10 border border-gold/20 rounded-xl px-3 py-2">
+              <div className="w-4 h-4 rounded-full border border-white/20"
+                style={{ backgroundColor: COMMON_COLORS.find(c => c.name === selectedColor)?.code || customColorCode }} />
+              <span className="text-gold text-sm font-medium">Selected: {selectedColor || customColor}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Step 2 — Product search */}
+        <div>
+          <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">Step 2 — Is color ka product search karo</p>
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+            <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Product name type karo..."
+              className="w-full bg-secondary border border-border rounded-xl pl-9 pr-4 py-2.5 text-white text-sm focus:outline-none focus:border-gold transition" />
+          </div>
+          {searchResults.length > 0 && (
+            <div className="mt-2 border border-border rounded-xl overflow-hidden">
+              {searchResults.map(p => (
+                <button key={p._id} type="button"
+                  onClick={() => { setSelectedProductId(p._id); setSearchQuery(p.name); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 hover:bg-secondary transition text-left border-b border-border last:border-0 ${
+                    selectedProductId === p._id ? 'bg-gold/10' : ''
+                  }`}>
+                  <img src={p.images?.[0]} alt="" className="w-9 h-9 object-cover rounded-lg border border-border shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-sm line-clamp-1">{p.name}</p>
+                    <p className="text-gray-400 text-xs">₹{p.sellingPrice} • {p.category}</p>
+                  </div>
+                  {selectedProductId === p._id && <Check size={14} className="text-gold shrink-0" />}
+                </button>
+              ))}
+            </div>
+          )}
+          {selectedProductId && (
+            <div className="flex items-center gap-2 mt-2 bg-green-500/10 border border-green-500/20 rounded-xl px-3 py-2">
+              <Check size={14} className="text-green-400" />
+              <span className="text-green-400 text-sm">Product selected!</span>
+            </div>
+          )}
+        </div>
+
+        <button type="button" onClick={addVariant}
+          disabled={(!selectedColor && !customColor) || !selectedProductId}
+          className="w-full bg-gold text-black py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-gold-light transition disabled:opacity-40 disabled:cursor-not-allowed">
+          <Plus size={16} /> Variant Add Karo
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // ─── PRODUCT FORM MODAL ───────────────────────────────────
-const ProductForm = ({ editProduct, onClose, onSave }) => {
+const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
   const getInitialForm = () => {
     if (editProduct) return {
       name: editProduct.name,
       description: editProduct.description || '',
-      images: editProduct.images || [],   // ← array now, not string
+      images: editProduct.images || [],
       category: editProduct.category,
       sizeType: editProduct.sizeType || 'none',
       availableSizes: editProduct.availableSizes || [],
@@ -223,13 +398,15 @@ const ProductForm = ({ editProduct, onClose, onSave }) => {
       isFeatured: editProduct.isFeatured || false,
       isNewArrival: editProduct.isNewArrival || false,
       isTrending: editProduct.isTrending || false,
+      variants: editProduct.variants || [],
     };
     return {
-      name: '', description: '', images: [], category: 'Women',  // ← array
+      name: '', description: '', images: [], category: 'Women',
       sizeType: 'none', availableSizes: [],
       meeshoPrice: '', sellingPrice: '', originalPrice: '',
       stock: '', tags: '',
       isFeatured: false, isNewArrival: false, isTrending: false,
+      variants: [],
     };
   };
 
@@ -257,13 +434,18 @@ const ProductForm = ({ editProduct, onClose, onSave }) => {
     try {
       const payload = {
         ...form,
-        // images already array hai — no split needed
         tags: form.tags.split(',').map(s => s.trim()).filter(Boolean),
         meeshoPrice: Number(form.meeshoPrice),
         sellingPrice: Number(form.sellingPrice),
         originalPrice: Number(form.originalPrice),
         stock: Number(form.stock),
         availableSizes: form.sizeType === 'none' ? [] : form.availableSizes,
+        // variants — only send productId + color + colorCode
+        variants: form.variants.map(v => ({
+          color: v.color,
+          colorCode: v.colorCode,
+          productId: v.productId?._id || v.productId,
+        })),
       };
       if (editProduct) {
         await adminUpdateProduct(editProduct._id, payload);
@@ -296,20 +478,21 @@ const ProductForm = ({ editProduct, onClose, onSave }) => {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-border shrink-0">
+        <div className="flex border-b border-border shrink-0 overflow-x-auto">
           {[
             { id: 'basic', label: 'Basic Info' },
             { id: 'sizes', label: 'Sizes' },
-            { id: 'pricing', label: 'Pricing & Stock' },
-            { id: 'media', label: 'Images & Tags' },
+            { id: 'pricing', label: 'Pricing' },
+            { id: 'media', label: 'Images' },
+            { id: 'variants', label: '🎨 Variants', badge: form.variants.length },
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-3 text-xs md:text-sm font-semibold border-b-2 transition ${
+              className={`flex-shrink-0 px-3 py-3 text-xs md:text-sm font-semibold border-b-2 transition flex items-center gap-1 ${
                 activeTab === tab.id ? 'border-gold text-gold' : 'border-transparent text-gray-400 hover:text-white'
               }`}>
               {tab.label}
-              {tab.id === 'media' && form.images.length > 0 && (
-                <span className="ml-1 bg-gold text-black text-xs rounded-full px-1.5">{form.images.length}</span>
+              {tab.badge > 0 && (
+                <span className="bg-gold text-black text-xs rounded-full px-1.5 py-0.5 leading-none">{tab.badge}</span>
               )}
             </button>
           ))}
@@ -400,21 +583,6 @@ const ProductForm = ({ editProduct, onClose, onSave }) => {
                   <p className="text-green-400 text-sm font-semibold">✅ Free Size / One Size set hai</p>
                 </div>
               )}
-              {form.sizeType === 'none' && (
-                <div className="bg-secondary border border-border rounded-xl p-3 text-center">
-                  <p className="text-gray-400 text-sm">Is product mein size selection nahi hoga</p>
-                </div>
-              )}
-              {form.availableSizes.length > 0 && (
-                <div>
-                  <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">Preview — Customer ko dikhega:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {form.availableSizes.map(size => (
-                      <div key={size} className="px-3 py-1.5 rounded-xl border border-border text-white text-sm bg-secondary">{size}</div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
@@ -448,7 +616,7 @@ const ProductForm = ({ editProduct, onClose, onSave }) => {
             </div>
           )}
 
-          {/* ── MEDIA — URL + CLOUDINARY UPLOAD ── */}
+          {/* ── MEDIA ── */}
           {activeTab === 'media' && (
             <div className="space-y-5">
               <MultiImageUploader
@@ -470,6 +638,16 @@ const ProductForm = ({ editProduct, onClose, onSave }) => {
                 )}
               </div>
             </div>
+          )}
+
+          {/* ── VARIANTS ── */}
+          {activeTab === 'variants' && (
+            <VariantsTab
+              currentProductId={editProduct?._id}
+              variants={form.variants}
+              onChange={(v) => setForm({ ...form, variants: v })}
+              allProducts={allProducts}
+            />
           )}
         </div>
 
@@ -619,6 +797,9 @@ const AdminProducts = () => {
                       {product.isFeatured && <span className="bg-purple-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">⭐</span>}
                       {product.isTrending && <span className="bg-orange-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">🔥</span>}
                       {product.isNewArrival && <span className="bg-green-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">NEW</span>}
+                      {product.variants?.length > 0 && (
+                        <span className="bg-blue-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">🎨 {product.variants.length}</span>
+                      )}
                     </div>
                     {product.stock < 5 && (
                       <div className="absolute bottom-0 left-0 right-0 bg-red-500/80 text-white text-xs text-center py-1">⚠️ Low Stock: {product.stock}</div>
@@ -627,12 +808,15 @@ const AdminProducts = () => {
                   <div className="p-3">
                     <p className="text-gray-400 text-xs mb-0.5">{product.category}</p>
                     <p className="text-white font-semibold text-sm line-clamp-2 mb-1">{product.name}</p>
-                    {product.availableSizes?.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-2">
-                        {product.availableSizes.slice(0, 4).map(s => (
-                          <span key={s} className="text-xs bg-secondary border border-border px-1.5 py-0.5 rounded text-gray-300">{s}</span>
+                    {/* Color dots if has variants */}
+                    {product.variants?.length > 0 && (
+                      <div className="flex items-center gap-1 mb-2">
+                        {product.variants.slice(0, 5).map((v, i) => (
+                          <div key={i} title={v.color}
+                            className="w-4 h-4 rounded-full border border-white/20"
+                            style={{ backgroundColor: v.colorCode || '#888' }} />
                         ))}
-                        {product.availableSizes.length > 4 && <span className="text-xs text-gray-500">+{product.availableSizes.length - 4}</span>}
+                        <span className="text-gray-500 text-xs ml-1">{product.variants.length} colors</span>
                       </div>
                     )}
                     <div className="flex items-center justify-between mb-1">
@@ -672,6 +856,7 @@ const AdminProducts = () => {
           editProduct={editProduct}
           onClose={() => { setShowForm(false); setEditProduct(null); }}
           onSave={() => { setShowForm(false); setEditProduct(null); fetchProducts(); }}
+          allProducts={products}
         />
       )}
     </div>
