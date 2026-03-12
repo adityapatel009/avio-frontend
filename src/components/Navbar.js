@@ -93,7 +93,10 @@ const MegaMenu = ({ category, onClose }) => {
               <ul className="space-y-2">
                 {section.items.map(item => (
                   <li key={item}>
-                    <Link to={`/products?search=${item}`} onClick={onClose}
+                    {/* ✅ subCategory filter use karo */}
+                    <Link
+                      to={`/products?category=${encodeURIComponent(category)}&subCategory=${encodeURIComponent(item)}`}
+                      onClick={onClose}
                       className="text-gray-400 text-sm hover:text-white hover:translate-x-1 transition-all inline-block">
                       {item}
                     </Link>
@@ -202,7 +205,6 @@ const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center gap-4">
 
-            {/* ── AVIO LOGO ── */}
             <Link to="/" className="shrink-0 group hover:opacity-80 transition">
               <AvioLogo />
             </Link>
@@ -229,7 +231,6 @@ const Navbar = () => {
                 </div>
               </form>
 
-              {/* Suggestions */}
               {showSuggestions && suggestions.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl overflow-hidden z-50 shadow-2xl">
                   {suggestions.map(product => (
@@ -252,8 +253,9 @@ const Navbar = () => {
                 </div>
               )}
             </div>
-<NotificationBell />
-            {/* Right Icons */}
+
+            <NotificationBell />
+
             <div className="flex items-center gap-1 md:gap-3 ml-auto md:ml-0">
               <Link to="/wishlist" className="hidden md:flex flex-col items-center p-2 hover:text-purple-400 transition group">
                 <Heart size={20} className="text-gray-300 group-hover:text-purple-400" />
@@ -325,7 +327,7 @@ const Navbar = () => {
                 onMouseEnter={() => cat !== 'All' && setActiveCategory(cat)}
                 onMouseLeave={() => setActiveCategory(null)}>
                 <Link
-                  to={cat === 'All' ? '/products' : `/products?category=${cat}`}
+                  to={cat === 'All' ? '/products' : `/products?category=${encodeURIComponent(cat)}`}
                   className={`flex items-center gap-1 px-3 py-3 text-sm font-medium whitespace-nowrap transition-all border-b-2 ${
                     activeCategory === cat
                       ? 'text-purple-400 border-purple-500'
@@ -353,7 +355,7 @@ const Navbar = () => {
             <p className="text-purple-400 text-xs font-bold uppercase tracking-wider mb-2">Categories</p>
             <div className="grid grid-cols-2 gap-2">
               {categories.filter(c => c !== 'All').map(cat => (
-                <Link key={cat} to={`/products?category=${cat}`}
+                <Link key={cat} to={`/products?category=${encodeURIComponent(cat)}`}
                   onClick={() => setMenuOpen(false)}
                   className="text-gray-300 text-sm py-1.5 px-3 bg-card rounded-lg hover:text-purple-400 hover:border-purple-500 border border-border transition">
                   {cat}

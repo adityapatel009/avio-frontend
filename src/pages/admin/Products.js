@@ -13,6 +13,50 @@ const categories = [
   'Sports & Fitness', 'Kids', 'Toys', 'Books', 'Food', 'Other'
 ];
 
+// ─── EXACT SAME AS NAVBAR megaMenuData ───────────────────
+const SUBCATEGORIES = {
+  Women: [
+    'Kurtas & Suits', 'Sarees', 'Lehengas', 'Jeans', 'Tops & T-Shirts', 'Dresses', 'Skirts', 'Lingerie',
+    'Shirts', 'Trousers', 'Shorts', 'Co-ords', 'Jumpsuits', 'Blazers', 'Sweaters', 'Hoodies',
+    'Anarkali', 'Palazzo Sets', 'Dupattas', 'Blouses', 'Salwar Suits', 'Shrugs',
+  ],
+  Men: [
+    'Shirts', 'T-Shirts', 'Jeans', 'Trousers', 'Kurtas', 'Shorts', 'Track Pants', 'Sweatshirts',
+    'Formal Shirts', 'Formal Trousers', 'Blazers', 'Suits', 'Ties', 'Belts',
+    'Kurta Sets', 'Sherwanis', 'Nehru Jackets', 'Dhotis', 'Pathani Suits',
+  ],
+  Electronics: [
+    'Smartphones', 'Cases & Covers', 'Chargers', 'Power Banks', 'Screen Guards', 'Earphones',
+    'Bluetooth Speakers', 'Headphones', 'Earbuds', 'Soundbars', 'Smart Watches',
+    'Cables', 'Adapters', 'USB Hubs', 'Webcams', 'Keyboards', 'Mouse',
+  ],
+  'Home Decor': [
+    'Cushions', 'Curtains', 'Rugs', 'Wall Art', 'Lamps', 'Candles',
+    'Bedsheets', 'Pillows', 'Blankets', 'Mattress Covers', 'Night Lamps',
+    'Storage Boxes', 'Table Mats', 'Cookware', 'Utensils', 'Jars',
+  ],
+  Beauty: [
+    'Moisturizers', 'Face Wash', 'Serums', 'Sunscreen', 'Face Masks', 'Toners',
+    'Lipstick', 'Foundation', 'Kajal', 'Mascara', 'Blush', 'Eyeshadow',
+    'Shampoo', 'Conditioner', 'Hair Oil', 'Hair Masks',
+  ],
+  Footwear: [
+    'Heels', 'Flats', 'Sandals', 'Sneakers', 'Boots', 'Wedges',
+    'Formal Shoes', 'Loafers', 'Sports Shoes',
+    'School Shoes', 'Slippers',
+  ],
+  'Jewellery & Accessories': [
+    'Necklaces', 'Earrings', 'Bangles', 'Rings', 'Anklets', 'Bracelets',
+    'Handbags', 'Clutches', 'Backpacks', 'Tote Bags', 'Wallets',
+    'Sunglasses', 'Watches', 'Scarves', 'Hair Accessories', 'Belts',
+  ],
+  'Sports & Fitness': [
+    'Track Suits', 'Gym Wear', 'Yoga Pants', 'Sports Bras', 'Shorts',
+    'Dumbbells', 'Resistance Bands', 'Yoga Mats', 'Jump Rope', 'Bottles',
+    'Running Shoes', 'Training Shoes', 'Cricket Shoes', 'Football Boots',
+  ],
+};
+
 const SIZE_TYPES = [
   { value: 'none',      label: 'No Size (Electronics, Home Decor etc.)' },
   { value: 'free',      label: 'Free Size / One Size' },
@@ -33,22 +77,14 @@ const SIZE_OPTIONS = {
   none:      [],
 };
 
-// Common colors for quick selection
 const COMMON_COLORS = [
-  { name: 'Red', code: '#EF4444' },
-  { name: 'Blue', code: '#3B82F6' },
-  { name: 'Green', code: '#22C55E' },
-  { name: 'Yellow', code: '#EAB308' },
-  { name: 'Pink', code: '#EC4899' },
-  { name: 'Purple', code: '#A855F7' },
-  { name: 'Orange', code: '#F97316' },
-  { name: 'Black', code: '#171717' },
-  { name: 'White', code: '#F5F5F5' },
-  { name: 'Grey', code: '#6B7280' },
-  { name: 'Brown', code: '#92400E' },
-  { name: 'Navy', code: '#1E3A5F' },
-  { name: 'Maroon', code: '#7F1D1D' },
-  { name: 'Cream', code: '#FFFDD0' },
+  { name: 'Red', code: '#EF4444' }, { name: 'Blue', code: '#3B82F6' },
+  { name: 'Green', code: '#22C55E' }, { name: 'Yellow', code: '#EAB308' },
+  { name: 'Pink', code: '#EC4899' }, { name: 'Purple', code: '#A855F7' },
+  { name: 'Orange', code: '#F97316' }, { name: 'Black', code: '#171717' },
+  { name: 'White', code: '#F5F5F5' }, { name: 'Grey', code: '#6B7280' },
+  { name: 'Brown', code: '#92400E' }, { name: 'Navy', code: '#1E3A5F' },
+  { name: 'Maroon', code: '#7F1D1D' }, { name: 'Cream', code: '#FFFDD0' },
   { name: 'Peach', code: '#FFCBA4' },
 ];
 
@@ -102,7 +138,7 @@ const MultiImageUploader = ({ value = [], onChange, max = 5 }) => {
     if (value.length + files.length > max) return toast.error(`Maximum ${max} images allowed!`);
     setUploading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('crownbay_token');
       const formData = new FormData();
       files.forEach(f => formData.append('images', f));
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
@@ -224,10 +260,8 @@ const VariantsTab = ({ currentProductId, variants, onChange, allProducts }) => {
   const [customColorCode, setCustomColorCode] = useState('#000000');
   const [selectedProductId, setSelectedProductId] = useState('');
 
-  // Products already linked as variants
   const linkedIds = variants.map(v => v.productId?._id || v.productId);
 
-  // Filter products for search — exclude current product and already linked ones
   const searchResults = allProducts.filter(p => {
     if (p._id === currentProductId) return false;
     if (linkedIds.includes(p._id)) return false;
@@ -249,17 +283,12 @@ const VariantsTab = ({ currentProductId, variants, onChange, allProducts }) => {
       colorCode: colorCode,
       productId: { _id: selectedProductId, name: product?.name, images: product?.images }
     }]);
-    setSelectedColor('');
-    setCustomColor('');
-    setCustomColorCode('#000000');
-    setSelectedProductId('');
-    setSearchQuery('');
+    setSelectedColor(''); setCustomColor(''); setCustomColorCode('#000000');
+    setSelectedProductId(''); setSearchQuery('');
     toast.success(`${colorName} variant add ho gaya!`);
   };
 
-  const removeVariant = (idx) => {
-    onChange(variants.filter((_, i) => i !== idx));
-  };
+  const removeVariant = (idx) => onChange(variants.filter((_, i) => i !== idx));
 
   return (
     <div className="space-y-5">
@@ -267,8 +296,6 @@ const VariantsTab = ({ currentProductId, variants, onChange, allProducts }) => {
         <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Variants kya hain?</p>
         <p className="text-gray-300 text-sm">Same design ke alag color products ko link karo. Customer ko "Also available in" section dikhega.</p>
       </div>
-
-      {/* Existing Variants */}
       {variants.length > 0 && (
         <div>
           <p className="text-gray-400 text-xs uppercase tracking-wider mb-3">Linked Variants ({variants.length})</p>
@@ -296,14 +323,10 @@ const VariantsTab = ({ currentProductId, variants, onChange, allProducts }) => {
           </div>
         </div>
       )}
-
-      {/* Add New Variant */}
       <div className="border border-border rounded-xl p-4 space-y-4">
         <p className="text-white font-semibold text-sm flex items-center gap-2">
           <Palette size={16} className="text-gold" /> Naya Variant Add Karo
         </p>
-
-        {/* Step 1 — Color select */}
         <div>
           <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">Step 1 — Color choose karo</p>
           <div className="flex flex-wrap gap-2 mb-3">
@@ -334,8 +357,6 @@ const VariantsTab = ({ currentProductId, variants, onChange, allProducts }) => {
             </div>
           )}
         </div>
-
-        {/* Step 2 — Product search */}
         <div>
           <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">Step 2 — Is color ka product search karo</p>
           <div className="relative">
@@ -369,7 +390,6 @@ const VariantsTab = ({ currentProductId, variants, onChange, allProducts }) => {
             </div>
           )}
         </div>
-
         <button type="button" onClick={addVariant}
           disabled={(!selectedColor && !customColor) || !selectedProductId}
           className="w-full bg-gold text-black py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-gold-light transition disabled:opacity-40 disabled:cursor-not-allowed">
@@ -388,6 +408,7 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
       description: editProduct.description || '',
       images: editProduct.images || [],
       category: editProduct.category,
+      subCategory: editProduct.subCategory || '',
       sizeType: editProduct.sizeType || 'none',
       availableSizes: editProduct.availableSizes || [],
       meeshoPrice: editProduct.meeshoPrice || '',
@@ -402,6 +423,7 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
     };
     return {
       name: '', description: '', images: [], category: 'Women',
+      subCategory: '',
       sizeType: 'none', availableSizes: [],
       meeshoPrice: '', sellingPrice: '', originalPrice: '',
       stock: '', tags: '',
@@ -416,6 +438,11 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
 
   const profit = form.sellingPrice && form.meeshoPrice
     ? Number(form.sellingPrice) - Number(form.meeshoPrice) : 0;
+
+  // Jab category change ho to subCategory reset karo
+  const handleCategoryChange = (newCat) => {
+    setForm(f => ({ ...f, category: newCat, subCategory: '' }));
+  };
 
   const handleSizeTypeChange = (newType) => {
     setForm(f => ({
@@ -440,7 +467,6 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
         originalPrice: Number(form.originalPrice),
         stock: Number(form.stock),
         availableSizes: form.sizeType === 'none' ? [] : form.availableSizes,
-        // variants — only send productId + color + colorCode
         variants: form.variants.map(v => ({
           color: v.color,
           colorCode: v.colorCode,
@@ -461,6 +487,8 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
       setSaving(false);
     }
   };
+
+  const subCats = SUBCATEGORIES[form.category] || [];
 
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
@@ -516,13 +544,47 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
                   placeholder="Product description..." rows={3}
                   className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-gold transition resize-none" />
               </div>
-              <div>
-                <label className="text-gray-400 text-xs uppercase tracking-wider mb-1.5 block">Category</label>
-                <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
-                  className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-gold transition">
-                  {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+
+              {/* Category + SubCategory */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-gray-400 text-xs uppercase tracking-wider mb-1.5 block">Main Category *</label>
+                  <select value={form.category} onChange={e => handleCategoryChange(e.target.value)}
+                    className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-gold transition">
+                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-gray-400 text-xs uppercase tracking-wider mb-1.5 block">
+                    Sub Category
+                    {form.subCategory && <span className="text-gold ml-2">✓</span>}
+                  </label>
+                  {subCats.length > 0 ? (
+                    <select value={form.subCategory} onChange={e => setForm({ ...form, subCategory: e.target.value })}
+                      className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-gold transition">
+                      <option value="">-- Select Sub Category --</option>
+                      {subCats.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  ) : (
+                    <div className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-gray-500 text-sm">
+                      Is category mein sub-category nahi hai
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Sub category chips — selected highlight */}
+              {form.subCategory && (
+                <div className="flex items-center gap-2 bg-gold/10 border border-gold/20 rounded-xl px-4 py-2.5">
+                  <Check size={14} className="text-gold shrink-0" />
+                  <span className="text-gold text-sm font-medium">{form.category} → {form.subCategory}</span>
+                  <button type="button" onClick={() => setForm({ ...form, subCategory: '' })}
+                    className="ml-auto text-gray-400 hover:text-white transition">
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
               <div>
                 <label className="text-gray-400 text-xs uppercase tracking-wider mb-2 block">Product Badges</label>
                 <div className="flex flex-wrap gap-2">
@@ -806,9 +868,10 @@ const AdminProducts = () => {
                     )}
                   </div>
                   <div className="p-3">
-                    <p className="text-gray-400 text-xs mb-0.5">{product.category}</p>
+                    <p className="text-gray-400 text-xs mb-0.5">
+                      {product.category}{product.subCategory ? ` › ${product.subCategory}` : ''}
+                    </p>
                     <p className="text-white font-semibold text-sm line-clamp-2 mb-1">{product.name}</p>
-                    {/* Color dots if has variants */}
                     {product.variants?.length > 0 && (
                       <div className="flex items-center gap-1 mb-2">
                         {product.variants.slice(0, 5).map((v, i) => (
