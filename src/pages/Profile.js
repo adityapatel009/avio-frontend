@@ -22,15 +22,33 @@ const statusConfig = {
 };
 
 // ─── EDIT PROFILE SECTION ────────────────────────────────
-const EditProfile = ({ user }) => {
+const EditProfile = ({ user, onUpdate }) => {
   const [form, setForm] = useState({ name: user?.name || '', phone: user?.phone || '' });
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
+    if (!form.name.trim()) return toast.error('Naam daalo!');
     setSaving(true);
-    await new Promise(r => setTimeout(r, 800));
-    setSaving(false);
-    toast.success('Profile update ho gaya! ✅');
+    try {
+      const token = localStorage.getItem('crownbay_token');
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const res = await fetch(`${apiUrl}/auth/update-profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: form.name, phone: form.phone }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      onUpdate({ name: form.name, phone: form.phone });
+      toast.success('Profile update ho gaya! ✅');
+    } catch (err) {
+      toast.error(err.message || 'Update nahi hua!');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -365,7 +383,7 @@ const WishlistSection = () => (
 
 // ─── MAIN PROFILE PAGE ────────────────────────────────────
 const Profile = () => {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, updateUser } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
 
@@ -384,7 +402,7 @@ const Profile = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'profile':  return <EditProfile user={user} />;
+      case 'profile':  return <EditProfile user={user} onUpdate={updateUser} />;
       case 'orders':   return <OrdersSection />;
       case 'address':  return <AddressSection user={user} />; // ✅ user pass karo
       case 'wishlist': return <WishlistSection />;

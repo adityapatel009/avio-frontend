@@ -41,16 +41,17 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
-  const logout = () => {
-    // ── Sirf token remove karo, addresses/cart mat hatao ──
-    // (wo user-specific keys hain, dusra user login karega
-    //  to apni key se apna data load karega)
+ const logout = () => {
     localStorage.removeItem('crownbay_token');
     setUser(null);
   };
 
+  const updateUser = (updatedData) => {
+    setUser(prev => ({ ...prev, ...updatedData }));
+  };
+
   return (
-<AuthContext.Provider value={{ user, loading, login, loginWithToken, register, logout, isAdmin: user?.role === 'admin' }}>
+<AuthContext.Provider value={{ user, loading, login, loginWithToken, register, logout, updateUser, isAdmin: user?.role === 'admin' }}>
       {children}
     </AuthContext.Provider>
   );
