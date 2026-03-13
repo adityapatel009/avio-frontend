@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   Plus, Edit, Trash2, X, Search, Check, Package,
-  Upload, Link, Loader, Image, Palette
+  Upload, Link, Loader, Image, Palette,
+  ChevronDown, ChevronUp, Grid2X2
 } from 'lucide-react';
 import { getProducts, adminAddProduct, adminUpdateProduct, adminDeleteProduct } from '../../utils/api';
 import axios from 'axios';
@@ -13,48 +14,15 @@ const categories = [
   'Sports & Fitness', 'Kids', 'Toys', 'Books', 'Food', 'Other'
 ];
 
-// ─── EXACT SAME AS NAVBAR megaMenuData ───────────────────
 const SUBCATEGORIES = {
-  Women: [
-    'Kurtas & Suits', 'Sarees', 'Lehengas', 'Jeans', 'Tops & T-Shirts', 'Dresses', 'Skirts', 'Lingerie',
-    'Shirts', 'Trousers', 'Shorts', 'Co-ords', 'Jumpsuits', 'Blazers', 'Sweaters', 'Hoodies',
-    'Anarkali', 'Palazzo Sets', 'Dupattas', 'Blouses', 'Salwar Suits', 'Shrugs',
-  ],
-  Men: [
-    'Shirts', 'T-Shirts', 'Jeans', 'Trousers', 'Kurtas', 'Shorts', 'Track Pants', 'Sweatshirts',
-    'Formal Shirts', 'Formal Trousers', 'Blazers', 'Suits', 'Ties', 'Belts',
-    'Kurta Sets', 'Sherwanis', 'Nehru Jackets', 'Dhotis', 'Pathani Suits',
-  ],
-  Electronics: [
-    'Smartphones', 'Cases & Covers', 'Chargers', 'Power Banks', 'Screen Guards', 'Earphones',
-    'Bluetooth Speakers', 'Headphones', 'Earbuds', 'Soundbars', 'Smart Watches',
-    'Cables', 'Adapters', 'USB Hubs', 'Webcams', 'Keyboards', 'Mouse',
-  ],
-  'Home Decor': [
-    'Cushions', 'Curtains', 'Rugs', 'Wall Art', 'Lamps', 'Candles',
-    'Bedsheets', 'Pillows', 'Blankets', 'Mattress Covers', 'Night Lamps',
-    'Storage Boxes', 'Table Mats', 'Cookware', 'Utensils', 'Jars',
-  ],
-  Beauty: [
-    'Moisturizers', 'Face Wash', 'Serums', 'Sunscreen', 'Face Masks', 'Toners',
-    'Lipstick', 'Foundation', 'Kajal', 'Mascara', 'Blush', 'Eyeshadow',
-    'Shampoo', 'Conditioner', 'Hair Oil', 'Hair Masks',
-  ],
-  Footwear: [
-    'Heels', 'Flats', 'Sandals', 'Sneakers', 'Boots', 'Wedges',
-    'Formal Shoes', 'Loafers', 'Sports Shoes',
-    'School Shoes', 'Slippers',
-  ],
-  'Jewellery & Accessories': [
-    'Necklaces', 'Earrings', 'Bangles', 'Rings', 'Anklets', 'Bracelets',
-    'Handbags', 'Clutches', 'Backpacks', 'Tote Bags', 'Wallets',
-    'Sunglasses', 'Watches', 'Scarves', 'Hair Accessories', 'Belts',
-  ],
-  'Sports & Fitness': [
-    'Track Suits', 'Gym Wear', 'Yoga Pants', 'Sports Bras', 'Shorts',
-    'Dumbbells', 'Resistance Bands', 'Yoga Mats', 'Jump Rope', 'Bottles',
-    'Running Shoes', 'Training Shoes', 'Cricket Shoes', 'Football Boots',
-  ],
+  Women: ['Kurtas & Suits','Sarees','Lehengas','Jeans','Tops & T-Shirts','Dresses','Skirts','Lingerie','Shirts','Trousers','Shorts','Co-ords','Jumpsuits','Blazers','Sweaters','Hoodies','Anarkali','Palazzo Sets','Dupattas','Blouses','Salwar Suits','Shrugs'],
+  Men: ['Shirts','T-Shirts','Jeans','Trousers','Kurtas','Shorts','Track Pants','Sweatshirts','Formal Shirts','Formal Trousers','Blazers','Suits','Ties','Belts','Kurta Sets','Sherwanis','Nehru Jackets','Dhotis','Pathani Suits'],
+  Electronics: ['Smartphones','Cases & Covers','Chargers','Power Banks','Screen Guards','Earphones','Bluetooth Speakers','Headphones','Earbuds','Soundbars','Smart Watches','Cables','Adapters','USB Hubs','Webcams','Keyboards','Mouse'],
+  'Home Decor': ['Cushions','Curtains','Rugs','Wall Art','Lamps','Candles','Bedsheets','Pillows','Blankets','Mattress Covers','Night Lamps','Storage Boxes','Table Mats','Cookware','Utensils','Jars'],
+  Beauty: ['Moisturizers','Face Wash','Serums','Sunscreen','Face Masks','Toners','Lipstick','Foundation','Kajal','Mascara','Blush','Eyeshadow','Shampoo','Conditioner','Hair Oil','Hair Masks'],
+  Footwear: ['Heels','Flats','Sandals','Sneakers','Boots','Wedges','Formal Shoes','Loafers','Sports Shoes','School Shoes','Slippers'],
+  'Jewellery & Accessories': ['Necklaces','Earrings','Bangles','Rings','Anklets','Bracelets','Handbags','Clutches','Backpacks','Tote Bags','Wallets','Sunglasses','Watches','Scarves','Hair Accessories','Belts'],
+  'Sports & Fitness': ['Track Suits','Gym Wear','Yoga Pants','Sports Bras','Shorts','Dumbbells','Resistance Bands','Yoga Mats','Jump Rope','Bottles','Running Shoes','Training Shoes','Cricket Shoes','Football Boots'],
 };
 
 const SIZE_TYPES = [
@@ -68,8 +36,8 @@ const SIZE_TYPES = [
 ];
 
 const SIZE_OPTIONS = {
-  clothing:  ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'],
-  innerwear: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+  clothing:  ['XS','S','M','L','XL','XXL','3XL'],
+  innerwear: ['XS','S','M','L','XL','XXL'],
   bra:       ['28A','28B','28C','30A','30B','30C','30D','32A','32B','32C','32D','34A','34B','34C','34D','36B','36C','36D','S','M','L','XL','Free Size'],
   bottom:    ['26','28','30','32','34','36','38','40','S','M','L','XL','XXL','2XL'],
   footwear:  ['UK 4','UK 5','UK 6','UK 7','UK 8','UK 9','UK 10','UK 11'],
@@ -87,6 +55,103 @@ const COMMON_COLORS = [
   { name: 'Maroon', code: '#7F1D1D' }, { name: 'Cream', code: '#FFFDD0' },
   { name: 'Peach', code: '#FFCBA4' },
 ];
+
+// ─── CATEGORY STATS BAR ───────────────────────────────────
+const CategoryStatsBar = ({ products, activeCategory, activeSubCategory, onCategoryClick, onSubCategoryClick, onClear }) => {
+  const [expandedCat, setExpandedCat] = useState(null);
+  const catList = ['Women','Men','Electronics','Home Decor','Beauty','Footwear','Jewellery & Accessories','Sports & Fitness'];
+
+  const catColors = {
+    Women: 'bg-pink-500/10 border-pink-500/20 text-pink-400 hover:border-pink-500/50',
+    Men: 'bg-blue-500/10 border-blue-500/20 text-blue-400 hover:border-blue-500/50',
+    Electronics: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400 hover:border-cyan-500/50',
+    'Home Decor': 'bg-orange-500/10 border-orange-500/20 text-orange-400 hover:border-orange-500/50',
+    Beauty: 'bg-purple-500/10 border-purple-500/20 text-purple-400 hover:border-purple-500/50',
+    Footwear: 'bg-green-500/10 border-green-500/20 text-green-400 hover:border-green-500/50',
+    'Jewellery & Accessories': 'bg-gold/10 border-gold/20 text-gold hover:border-gold/50',
+    'Sports & Fitness': 'bg-red-500/10 border-red-500/20 text-red-400 hover:border-red-500/50',
+  };
+
+  const catStats = catList.map(cat => {
+    const catProds = products.filter(p => p.category === cat);
+    const subCatMap = {};
+    catProds.forEach(p => {
+      const sub = p.subCategory || 'Uncategorized';
+      if (!subCatMap[sub]) subCatMap[sub] = 0;
+      subCatMap[sub]++;
+    });
+    return { cat, total: catProds.length, subCats: subCatMap };
+  }).filter(c => c.total > 0);
+
+  if (catStats.length === 0) return null;
+
+  return (
+    <div className="bg-card border border-border rounded-2xl p-4 mb-5">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-white font-bold text-sm flex items-center gap-2">
+          <Grid2X2 size={15} className="text-gold" /> Category Overview
+        </h3>
+        {(activeCategory || activeSubCategory) && (
+          <button onClick={onClear} className="text-gray-400 text-xs hover:text-red-400 transition">
+            Clear Filter ✕
+          </button>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-3">
+        {catStats.map(({ cat, total }) => {
+          const isActive = activeCategory === cat;
+          const color = catColors[cat] || 'bg-gray-500/10 border-gray-500/20 text-gray-400';
+          return (
+            <button key={cat}
+              onClick={() => {
+                onCategoryClick(cat);
+                setExpandedCat(expandedCat === cat ? null : cat);
+              }}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition ${
+                isActive ? `${color} ring-2 ring-gold/40` : color
+              }`}>
+              {cat}
+              <span className="bg-white/10 px-1.5 py-0.5 rounded-full text-xs font-bold">{total}</span>
+              {expandedCat === cat ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+            </button>
+          );
+        })}
+      </div>
+
+      {expandedCat && (() => {
+        const catData = catStats.find(c => c.cat === expandedCat);
+        if (!catData) return null;
+        return (
+          <div className="bg-secondary border border-border rounded-xl p-3">
+            <p className="text-gray-500 text-xs mb-2 uppercase tracking-wider">{expandedCat} › SubCategories</p>
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(catData.subCats)
+                .sort((a, b) => b[1] - a[1])
+                .map(([sub, count]) => {
+                  const isSubActive = activeCategory === expandedCat && activeSubCategory === sub;
+                  return (
+                    <button key={sub}
+                      onClick={() => onSubCategoryClick(expandedCat, sub)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs transition ${
+                        isSubActive
+                          ? 'bg-gold text-black border-gold font-bold'
+                          : 'border-border text-gray-300 hover:border-gold hover:text-gold'
+                      }`}>
+                      {sub}
+                      <span className={`text-[10px] font-bold px-1 rounded-full ${isSubActive ? 'bg-black/20' : 'bg-white/10'}`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+            </div>
+          </div>
+        );
+      })()}
+    </div>
+  );
+};
 
 // ─── SIZE SELECTOR ────────────────────────────────────────
 const SizeSelector = ({ sizeType, selected, onChange }) => {
@@ -279,8 +344,7 @@ const VariantsTab = ({ currentProductId, variants, onChange, allProducts }) => {
 
     const product = allProducts.find(p => p._id === selectedProductId);
     onChange([...variants, {
-      color: colorName,
-      colorCode: colorCode,
+      color: colorName, colorCode,
       productId: { _id: selectedProductId, name: product?.name, images: product?.images }
     }]);
     setSelectedColor(''); setCustomColor(''); setCustomColorCode('#000000');
@@ -304,8 +368,7 @@ const VariantsTab = ({ currentProductId, variants, onChange, allProducts }) => {
               const prod = v.productId;
               return (
                 <div key={idx} className="flex items-center gap-3 bg-secondary border border-border rounded-xl p-3">
-                  <div className="w-8 h-8 rounded-full border-2 border-border shrink-0"
-                    style={{ backgroundColor: v.colorCode || '#888' }} />
+                  <div className="w-8 h-8 rounded-full border-2 border-border shrink-0" style={{ backgroundColor: v.colorCode || '#888' }} />
                   <div className="flex-1 min-w-0">
                     <p className="text-white text-sm font-medium">{v.color}</p>
                     <p className="text-gray-400 text-xs line-clamp-1">{prod?.name || 'Product'}</p>
@@ -423,8 +486,7 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
     };
     return {
       name: '', description: '', images: [], category: 'Women',
-      subCategory: '',
-      sizeType: 'none', availableSizes: [],
+      subCategory: '', sizeType: 'none', availableSizes: [],
       meeshoPrice: '', sellingPrice: '', originalPrice: '',
       stock: '', tags: '',
       isFeatured: false, isNewArrival: false, isTrending: false,
@@ -439,7 +501,6 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
   const profit = form.sellingPrice && form.meeshoPrice
     ? Number(form.sellingPrice) - Number(form.meeshoPrice) : 0;
 
-  // Jab category change ho to subCategory reset karo
   const handleCategoryChange = (newCat) => {
     setForm(f => ({ ...f, category: newCat, subCategory: '' }));
   };
@@ -468,8 +529,7 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
         stock: Number(form.stock),
         availableSizes: form.sizeType === 'none' ? [] : form.availableSizes,
         variants: form.variants.map(v => ({
-          color: v.color,
-          colorCode: v.colorCode,
+          color: v.color, colorCode: v.colorCode,
           productId: v.productId?._id || v.productId,
         })),
       };
@@ -493,8 +553,6 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
       <div className="bg-card border border-border rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <h2 className="text-white font-bold text-lg flex items-center gap-2">
             <Package size={20} className="text-gold" />
@@ -505,7 +563,6 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
           </button>
         </div>
 
-        {/* Tabs */}
         <div className="flex border-b border-border shrink-0 overflow-x-auto">
           {[
             { id: 'basic', label: 'Basic Info' },
@@ -526,10 +583,7 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
           ))}
         </div>
 
-        {/* Form */}
         <div className="overflow-y-auto flex-1 p-5">
-
-          {/* ── BASIC INFO ── */}
           {activeTab === 'basic' && (
             <div className="space-y-4">
               <div>
@@ -544,8 +598,6 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
                   placeholder="Product description..." rows={3}
                   className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-gold transition resize-none" />
               </div>
-
-              {/* Category + SubCategory */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-gray-400 text-xs uppercase tracking-wider mb-1.5 block">Main Category *</label>
@@ -556,8 +608,7 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
                 </div>
                 <div>
                   <label className="text-gray-400 text-xs uppercase tracking-wider mb-1.5 block">
-                    Sub Category
-                    {form.subCategory && <span className="text-gold ml-2">✓</span>}
+                    Sub Category {form.subCategory && <span className="text-gold ml-2">✓</span>}
                   </label>
                   {subCats.length > 0 ? (
                     <select value={form.subCategory} onChange={e => setForm({ ...form, subCategory: e.target.value })}
@@ -572,8 +623,6 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
                   )}
                 </div>
               </div>
-
-              {/* Sub category chips — selected highlight */}
               {form.subCategory && (
                 <div className="flex items-center gap-2 bg-gold/10 border border-gold/20 rounded-xl px-4 py-2.5">
                   <Check size={14} className="text-gold shrink-0" />
@@ -584,7 +633,6 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
                   </button>
                 </div>
               )}
-
               <div>
                 <label className="text-gray-400 text-xs uppercase tracking-wider mb-2 block">Product Badges</label>
                 <div className="flex flex-wrap gap-2">
@@ -608,7 +656,6 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
             </div>
           )}
 
-          {/* ── SIZES ── */}
           {activeTab === 'sizes' && (
             <div className="space-y-5">
               <div>
@@ -648,7 +695,6 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
             </div>
           )}
 
-          {/* ── PRICING ── */}
           {activeTab === 'pricing' && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
@@ -678,14 +724,9 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
             </div>
           )}
 
-          {/* ── MEDIA ── */}
           {activeTab === 'media' && (
             <div className="space-y-5">
-              <MultiImageUploader
-                value={form.images}
-                onChange={(imgs) => setForm({ ...form, images: imgs })}
-                max={5}
-              />
+              <MultiImageUploader value={form.images} onChange={(imgs) => setForm({ ...form, images: imgs })} max={5} />
               <div>
                 <label className="text-gray-400 text-xs uppercase tracking-wider mb-1.5 block">Tags (comma separated)</label>
                 <input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })}
@@ -702,7 +743,6 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
             </div>
           )}
 
-          {/* ── VARIANTS ── */}
           {activeTab === 'variants' && (
             <VariantsTab
               currentProductId={editProduct?._id}
@@ -713,7 +753,6 @@ const ProductForm = ({ editProduct, onClose, onSave, allProducts }) => {
           )}
         </div>
 
-        {/* Footer */}
         <div className="flex gap-3 px-5 py-4 border-t border-border shrink-0">
           <button onClick={onClose}
             className="flex-1 border border-border text-gray-300 py-2.5 rounded-xl hover:border-gold transition text-sm">
@@ -740,6 +779,7 @@ const AdminProducts = () => {
   const [editProduct, setEditProduct] = useState(null);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [subCategoryFilter, setSubCategoryFilter] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [selected, setSelected] = useState([]);
 
@@ -748,7 +788,7 @@ const AdminProducts = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const { data } = await getProducts({ limit: 100 });
+      const { data } = await getProducts({ limit: 500 });
       setProducts(data.products);
     } catch { toast.error('Products load nahi hue!'); }
     finally { setLoading(false); }
@@ -770,11 +810,14 @@ const AdminProducts = () => {
   };
 
   const toggleSelect = (id) => setSelected(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
-  const toggleSelectAll = () => setSelected(selected.length === filtered.length ? [] : filtered.map(p => p._id));
 
   let filtered = products
     .filter(p => !search || p.name.toLowerCase().includes(search.toLowerCase()))
-    .filter(p => !categoryFilter || p.category === categoryFilter);
+    .filter(p => !categoryFilter || p.category === categoryFilter)
+    .filter(p => !subCategoryFilter || p.subCategory === subCategoryFilter);
+
+  const toggleSelectAll = () => setSelected(selected.length === filtered.length ? [] : filtered.map(p => p._id));
+
   if (sortBy === 'price_low') filtered = [...filtered].sort((a, b) => a.sellingPrice - b.sellingPrice);
   else if (sortBy === 'price_high') filtered = [...filtered].sort((a, b) => b.sellingPrice - a.sellingPrice);
   else if (sortBy === 'stock_low') filtered = [...filtered].sort((a, b) => a.stock - b.stock);
@@ -792,13 +835,23 @@ const AdminProducts = () => {
         </button>
       </div>
 
+      {/* ── CATEGORY STATS BAR ── */}
+      <CategoryStatsBar
+        products={products}
+        activeCategory={categoryFilter}
+        activeSubCategory={subCategoryFilter}
+        onCategoryClick={(cat) => { setCategoryFilter(cat); setSubCategoryFilter(''); }}
+        onSubCategoryClick={(cat, sub) => { setCategoryFilter(cat); setSubCategoryFilter(sub); }}
+        onClear={() => { setCategoryFilter(''); setSubCategoryFilter(''); }}
+      />
+
       <div className="flex flex-wrap gap-3 mb-5">
         <div className="relative flex-1 min-w-48">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search products..."
             className="w-full bg-card border border-border rounded-xl pl-9 pr-4 py-2.5 text-white text-sm focus:outline-none focus:border-gold transition" />
         </div>
-        <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}
+        <select value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setSubCategoryFilter(''); }}
           className="bg-card border border-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-gold transition">
           <option value="">All Categories</option>
           {categories.map(c => <option key={c} value={c}>{c}</option>)}
@@ -875,8 +928,7 @@ const AdminProducts = () => {
                     {product.variants?.length > 0 && (
                       <div className="flex items-center gap-1 mb-2">
                         {product.variants.slice(0, 5).map((v, i) => (
-                          <div key={i} title={v.color}
-                            className="w-4 h-4 rounded-full border border-white/20"
+                          <div key={i} title={v.color} className="w-4 h-4 rounded-full border border-white/20"
                             style={{ backgroundColor: v.colorCode || '#888' }} />
                         ))}
                         <span className="text-gray-500 text-xs ml-1">{product.variants.length} colors</span>
