@@ -183,10 +183,11 @@ const Products = () => {
 
   const search = searchParams.get('search') || '';
   const category = searchParams.get('category') || '';
+  const subCategory = searchParams.get('subCategory') || '';
   const sort = searchParams.get('sort') || '';
   const subcategories = category ? subcategoryData[category] || [] : [];
 
-  useEffect(() => { fetchProducts(); }, [search, category, sort, page]);
+  useEffect(() => { fetchProducts(); }, [search, category, subCategory, sort, page]);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -198,7 +199,7 @@ const Products = () => {
         setTotalPages(1);
         setTotalProducts(res.data.products.length);
       } else {
-        res = await getProducts({ category, sort, page, limit: 12 });
+        res = await getProducts({ category, subCategory, sort, page, limit: 12 });
         setProducts(res.data.products);
         setTotalPages(res.data.totalPages);
         setTotalProducts(res.data.totalProducts || res.data.products.length);
@@ -309,7 +310,7 @@ const Products = () => {
               <div className="flex flex-wrap gap-2 mt-3">
                 {subcategories.map(sub => (
                   <button key={sub}
-                    onClick={() => { setSearchParams(prev => { prev.set('search', sub); return prev; }); setPage(1); }}
+                    onClick={() => { setSearchParams(prev => { prev.set('subCategory', sub); prev.delete('search'); return prev; }); setPage(1); }}
                     className="px-3 py-1.5 bg-card border border-border rounded-full text-xs text-gray-300 hover:border-gold hover:text-gold hover:bg-gold/10 transition-all">
                     {sub}
                   </button>
