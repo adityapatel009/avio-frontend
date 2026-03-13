@@ -59,5 +59,6 @@ export const adminResolveReturn = (orderId, data) => API.put(`/orders/${orderId}
 export const adminAddProduct = (data) => API.post('/products', data);
 export const adminUpdateProduct = (id, data) => API.put(`/products/${id}`, data);
 export const adminDeleteProduct = (id) => API.delete(`/products/${id}`);
+export const getAutocompleteSuggestions = (q) => api.get(`/products/autocomplete?q=${encodeURIComponent(q)}`);
 
 export default API;

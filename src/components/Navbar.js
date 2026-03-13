@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, X, Heart, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { searchProducts } from '../utils/api';
+import { searchProducts, getAutocompleteSuggestions } from '../utils/api';
 import NotificationBell from './NotificationBell';
 
 // ─── MEGA MENU DATA ───────────────────────────────────────
@@ -163,13 +163,13 @@ const Navbar = () => {
     setSearchQuery(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (value.trim().length < 2) { setSuggestions([]); setShowSuggestions(false); return; }
-    debounceRef.current = setTimeout(async () => {
+   debounceRef.current = setTimeout(async () => {
       try {
-        const { data } = await searchProducts(value);
-        setSuggestions(data.products.slice(0, 5));
+        const { data } = await getAutocompleteSuggestions(value);
+        setSuggestions(data.suggestions.slice(0, 6));
         setShowSuggestions(true);
       } catch { setSuggestions([]); }
-    }, 350);
+    }, 300);
   }, []);
 
   const handleSearch = useCallback((e) => {
