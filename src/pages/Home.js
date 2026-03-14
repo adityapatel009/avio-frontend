@@ -10,6 +10,7 @@ import WishlistButton from '../components/WishlistButton';
 import toast from 'react-hot-toast';
 import FlashSaleBanner from '../components/FlashSaleBanner';
 import WelcomeOverlay from '../components/WelcomeOverlay';
+import LiveOrderFeed from '../components/LiveOrderFeed';
 
 
 // ─── PRODUCT CARD ─────────────────────────────────────────
@@ -613,6 +614,7 @@ const Home = () => {
         <OfferBanner />
         <RecentlyViewedSection />
       </div>
+      <LiveOrderFeed />
       <Footer />
     </div>
   );
