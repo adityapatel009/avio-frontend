@@ -11,7 +11,7 @@ import toast from 'react-hot-toast';
 import FlashSaleBanner from '../components/FlashSaleBanner';
 import WelcomeOverlay from '../components/WelcomeOverlay';
 import LiveOrderFeed from '../components/LiveOrderFeed';
-
+import DealOfTheDay from '../components/DealOfTheDay';
 
 // ─── PRODUCT CARD ─────────────────────────────────────────
 const ProductCard = ({ product }) => {
@@ -554,6 +554,7 @@ const Home = () => {
       <WelcomeOverlay />
 <FlashSaleBanner />
       <HeroSlider />
+      <DealOfTheDay />
       <MarqueeTicker />
       <div className="max-w-7xl mx-auto px-4">
         <StoryCircles />
