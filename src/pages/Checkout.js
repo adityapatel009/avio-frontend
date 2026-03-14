@@ -55,9 +55,7 @@ const OrderSuccess = ({ orderId, onContinue }) => (
     </div>
   </div>
 );
-const { markCartRecovered } = useCart();
-// Order place hone ke baad:
-await markCartRecovered();
+
 // ─── ADDRESS FORM ────────────────────────────────────────
 const AddressForm = ({ initial = {}, onSave, onCancel }) => {
   const [form, setForm] = useState({
@@ -130,7 +128,7 @@ const AddressForm = ({ initial = {}, onSave, onCancel }) => {
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { cart: cartItems, clearCart } = useCart();
+  const { cart: cartItems, clearCart, markCartRecovered } = useCart(); // ✅ FIX 1
   const { user } = useAuth();
 
   const passedState = location.state || {};
@@ -148,14 +146,20 @@ const Checkout = () => {
   const [placing, setPlacing] = useState(false);
   const [orderId, setOrderId] = useState(null);
 
-  // ── KEY: user ka unique address storage ──────────────────
-  // user._id ya email — dono mein se jo available ho
   const addressKey = user ? `crownbay_addresses_${user._id || user.email}` : null;
 
-  // ── User change hone par addresses load karo ─────────────
+  // Spin wheel coupon notify karo
+  useEffect(() => {
+    try {
+      const spinCoupon = JSON.parse(localStorage.getItem('avio_spin_coupon') || 'null');
+      if (spinCoupon && !coupon) {
+        toast.success(`🎡 Spin coupon available: ${spinCoupon.code} (${spinCoupon.label})`, { duration: 4000 });
+      }
+    } catch {}
+  }, []);
+
   useEffect(() => {
     if (!addressKey) return;
-
     const saved = localStorage.getItem(addressKey);
     if (saved) {
       try {
@@ -171,7 +175,7 @@ const Checkout = () => {
       initDefault();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addressKey]); // addressKey tab hi change hoga jab user change hoga
+  }, [addressKey]);
 
   const initDefault = () => {
     const defaultAddr = {
@@ -185,7 +189,6 @@ const Checkout = () => {
     setSelectedAddressId(defaultAddr.id);
   };
 
-  // ── Addresses save karo jab bhi update ho ────────────────
   useEffect(() => {
     if (!addressKey || addresses.length === 0) return;
     localStorage.setItem(addressKey, JSON.stringify(addresses));
@@ -245,6 +248,7 @@ const Checkout = () => {
       const { data } = await placeOrder(orderData);
       setOrderId(data.order.orderId);
       clearCart();
+      await markCartRecovered(); // ✅ FIX 2
     } catch (err) {
       toast.error(err.response?.data?.message || 'Order place nahi hua!');
     } finally {
@@ -344,7 +348,6 @@ const Checkout = () => {
                           ) : (
                             <p className="text-red-400 text-sm">Address details add karo ↓</p>
                           )}
-
                           {selectedAddressId === addr.id && addr.addressLine && (
                             <div className="flex gap-3 mt-2" onClick={e => e.stopPropagation()}>
                               {!addr.isDefault && (
@@ -359,7 +362,6 @@ const Checkout = () => {
                           )}
                         </div>
                       </div>
-
                       {selectedAddressId === addr.id && !addr.addressLine && (
                         <div className="mt-3" onClick={e => e.stopPropagation()}>
                           <AddressForm initial={addr}

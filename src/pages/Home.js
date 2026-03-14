@@ -13,6 +13,7 @@ import WelcomeOverlay from '../components/WelcomeOverlay';
 import LiveOrderFeed from '../components/LiveOrderFeed';
 import DealOfTheDay from '../components/DealOfTheDay';
 import CustomerPhotosWall from '../components/CustomerPhotosWall';
+import SpinWheel from '../components/SpinWheel';
 
 // ─── PRODUCT CARD ─────────────────────────────────────────
 const ProductCard = ({ product }) => {
@@ -619,6 +620,7 @@ const Home = () => {
         <RecentlyViewedSection />
       </div>
       <LiveOrderFeed />
+      <SpinWheel />
       <Footer />
     </div>
   );

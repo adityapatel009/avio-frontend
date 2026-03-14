@@ -12,6 +12,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
 import toast from 'react-hot-toast';
+import FrequentlyBoughtTogether from '../components/FrequentlyBoughtTogether';
 
 // ─── COLOR VARIANTS ───────────────────────────────────────
 const ColorVariants = ({ variants, currentId }) => {
@@ -959,7 +960,7 @@ const ProductDetail = () => {
             </div>
           )}
         </div>
-
+<FrequentlyBoughtTogether product={product} />
         {/* Similar Products */}
         {similarProducts.length > 0 && (
           <section className="mb-10">
