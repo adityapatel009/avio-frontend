@@ -12,6 +12,7 @@ import FlashSaleBanner from '../components/FlashSaleBanner';
 import WelcomeOverlay from '../components/WelcomeOverlay';
 import LiveOrderFeed from '../components/LiveOrderFeed';
 import DealOfTheDay from '../components/DealOfTheDay';
+import CustomerPhotosWall from '../components/CustomerPhotosWall';
 
 // ─── PRODUCT CARD ─────────────────────────────────────────
 const ProductCard = ({ product }) => {
@@ -614,6 +615,7 @@ const Home = () => {
         )}
 
         <OfferBanner />
+        <CustomerPhotosWall />
         <RecentlyViewedSection />
       </div>
       <LiveOrderFeed />
