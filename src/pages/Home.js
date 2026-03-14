@@ -9,6 +9,8 @@ import { useCart } from '../context/CartContext';
 import WishlistButton from '../components/WishlistButton';
 import toast from 'react-hot-toast';
 import FlashSaleBanner from '../components/FlashSaleBanner';
+import WelcomeOverlay from '../components/WelcomeOverlay';
+
 
 // ─── PRODUCT CARD ─────────────────────────────────────────
 const ProductCard = ({ product }) => {
@@ -548,7 +550,8 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-primary">
-      <FlashSaleBanner />
+      <WelcomeOverlay />
+<FlashSaleBanner />
       <HeroSlider />
       <MarqueeTicker />
       <div className="max-w-7xl mx-auto px-4">
