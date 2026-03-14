@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { adminGetOrders, getProducts } from '../../utils/api';
 import LowStockWidget from './LowStockWidget';
-import AdminDealOfDay from '../../components/admin/AdminDealOfDay';
+import AdminStoreFeatures from '../../components/admin/AdminStoreFeatures';
 
 const MiniBarChart = ({ data, color = 'bg-gold' }) => {
   const max = Math.max(...data, 1);
@@ -392,7 +392,7 @@ const Dashboard = () => {
 
       {/* ── CATEGORY BREAKDOWN ── */}
       <CategoryBreakdown products={allProducts} />
-<AdminDealOfDay />
+<AdminStoreFeatures />
       {/* Quick Links */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[

@@ -2,32 +2,21 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Gift, Copy, Check, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// ─── PRIZES ───────────────────────────────────────────────
-const PRIZES = [
-  { label: '5% OFF', code: 'SPIN5', discount: 5, type: 'percent', color: '#6C3AE8', probability: 30 },
-  { label: '10% OFF', code: 'SPIN10', discount: 10, type: 'percent', color: '#C084FC', probability: 25 },
-  { label: 'Free Delivery', code: 'FREEDEL', discount: 49, type: 'flat', color: '#22C55E', probability: 20 },
-  { label: '15% OFF', code: 'SPIN15', discount: 15, type: 'percent', color: '#F97316', probability: 12 },
-  { label: '20% OFF', code: 'SPIN20', discount: 20, type: 'percent', color: '#EAB308', probability: 8 },
-  { label: 'Better Luck!', code: null, discount: 0, type: 'none', color: '#4B5563', probability: 5 },
-];
-
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 const STORAGE_KEY = 'avio_spin_last';
 const COUPON_KEY = 'avio_spin_coupon';
 
-// Weighted random prize select
-const getRandomPrize = () => {
-  const total = PRIZES.reduce((sum, p) => sum + p.probability, 0);
+const getRandomPrize = (prizes) => {
+  const total = prizes.reduce((sum, p) => sum + p.probability, 0);
   let rand = Math.random() * total;
-  for (const prize of PRIZES) {
+  for (const prize of prizes) {
     rand -= prize.probability;
     if (rand <= 0) return prize;
   }
-  return PRIZES[0];
+  return prizes[0];
 };
 
-// ─── WHEEL CANVAS ─────────────────────────────────────────
-const WheelCanvas = ({ rotation, prizes }) => {
+const WheelCanvas = ({ prizes }) => {
   const canvasRef = useRef(null);
   const size = 260;
   const center = size / 2;
@@ -35,17 +24,13 @@ const WheelCanvas = ({ rotation, prizes }) => {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !prizes.length) return;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, size, size);
-
     const sliceAngle = (2 * Math.PI) / prizes.length;
-
     prizes.forEach((prize, i) => {
       const startAngle = i * sliceAngle - Math.PI / 2;
       const endAngle = startAngle + sliceAngle;
-
-      // Slice
       ctx.beginPath();
       ctx.moveTo(center, center);
       ctx.arc(center, center, radius, startAngle, endAngle);
@@ -55,8 +40,6 @@ const WheelCanvas = ({ rotation, prizes }) => {
       ctx.strokeStyle = '#0f0f1a';
       ctx.lineWidth = 2;
       ctx.stroke();
-
-      // Text
       ctx.save();
       ctx.translate(center, center);
       ctx.rotate(startAngle + sliceAngle / 2);
@@ -68,8 +51,6 @@ const WheelCanvas = ({ rotation, prizes }) => {
       ctx.fillText(prize.label, radius - 10, 4);
       ctx.restore();
     });
-
-    // Center circle
     ctx.beginPath();
     ctx.arc(center, center, 22, 0, 2 * Math.PI);
     ctx.fillStyle = '#0f0f1a';
@@ -77,8 +58,6 @@ const WheelCanvas = ({ rotation, prizes }) => {
     ctx.strokeStyle = '#6C3AE8';
     ctx.lineWidth = 3;
     ctx.stroke();
-
-    // Center text
     ctx.fillStyle = '#C084FC';
     ctx.font = 'bold 9px Arial';
     ctx.textAlign = 'center';
@@ -88,19 +67,15 @@ const WheelCanvas = ({ rotation, prizes }) => {
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      {/* Pointer */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1 z-10">
         <div className="w-0 h-0"
           style={{ borderLeft: '10px solid transparent', borderRight: '10px solid transparent', borderTop: '20px solid #C084FC' }} />
       </div>
-      <canvas ref={canvasRef} width={size} height={size}
-        style={{ transform: `rotate(${rotation}deg)`, transition: 'transform 0s' }}
-        className="rounded-full shadow-2xl" />
+      <canvas ref={canvasRef} width={size} height={size} className="rounded-full shadow-2xl" />
     </div>
   );
 };
 
-// ─── MAIN COMPONENT ───────────────────────────────────────
 const SpinWheel = () => {
   const [show, setShow] = useState(false);
   const [spinning, setSpinning] = useState(false);
@@ -110,65 +85,68 @@ const SpinWheel = () => {
   const [copied, setCopied] = useState(false);
   const [canSpin, setCanSpin] = useState(true);
   const [savedCoupon, setSavedCoupon] = useState(null);
+  const [prizes, setPrizes] = useState([]);
+  const [isActive, setIsActive] = useState(false);
   const animRef = useRef(null);
 
   useEffect(() => {
+    fetchConfig();
     // Din mein ek baar check
     const lastSpin = localStorage.getItem(STORAGE_KEY);
-    if (lastSpin) {
-      const last = new Date(lastSpin);
-      const now = new Date();
-      if (last.toDateString() === now.toDateString()) {
-        setCanSpin(false);
-      }
+    if (lastSpin && new Date(lastSpin).toDateString() === new Date().toDateString()) {
+      setCanSpin(false);
     }
-    // Saved coupon check
-    const coupon = localStorage.getItem(COUPON_KEY);
-    if (coupon) {
-      try { setSavedCoupon(JSON.parse(coupon)); } catch {}
-    }
+    try {
+      const coupon = localStorage.getItem(COUPON_KEY);
+      if (coupon) setSavedCoupon(JSON.parse(coupon));
+    } catch {}
   }, []);
 
+  const fetchConfig = async () => {
+    try {
+      const res = await fetch(`${API_URL}/products/spin-config`);
+      const data = await res.json();
+      setIsActive(data.config.isActive);
+      setPrizes(data.config.prizes);
+    } catch {
+      // Fallback prizes
+      setPrizes([
+        { label: '5% OFF', code: 'SPIN5', discount: 5, type: 'percent', color: '#6C3AE8', probability: 30 },
+        { label: '10% OFF', code: 'SPIN10', discount: 10, type: 'percent', color: '#C084FC', probability: 25 },
+        { label: 'Free Delivery', code: 'FREEDEL', discount: 49, type: 'flat', color: '#22C55E', probability: 20 },
+        { label: '15% OFF', code: 'SPIN15', discount: 15, type: 'percent', color: '#F97316', probability: 12 },
+        { label: '20% OFF', code: 'SPIN20', discount: 20, type: 'percent', color: '#EAB308', probability: 8 },
+        { label: 'Better Luck!', code: null, discount: 0, type: 'none', color: '#4B5563', probability: 5 },
+      ]);
+      setIsActive(true);
+    }
+  };
+
   const handleSpin = () => {
-    if (spinning || !canSpin) return;
-
-    const prize = getRandomPrize();
-    const prizeIndex = PRIZES.indexOf(prize);
-    const sliceAngle = 360 / PRIZES.length;
-
-    // Prize ke liye rotation calculate karo
+    if (spinning || !canSpin || !prizes.length) return;
+    const prize = getRandomPrize(prizes);
+    const prizeIndex = prizes.indexOf(prize);
+    const sliceAngle = 360 / prizes.length;
     const targetAngle = 360 - (prizeIndex * sliceAngle + sliceAngle / 2);
-    const extraSpins = 5 * 360; // 5 full rounds
-    const finalRotation = currentRotation + extraSpins + targetAngle - (currentRotation % 360);
-
+    const finalRotation = currentRotation + 5 * 360 + targetAngle - (currentRotation % 360);
     setSpinning(true);
-
-    // Smooth animation
     const duration = 4000;
     const start = performance.now();
     const startRot = currentRotation;
-
     const animate = (now) => {
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
-      // Ease out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
       const current = startRot + (finalRotation - startRot) * eased;
-
       setRotation(current);
-
       if (progress < 1) {
         animRef.current = requestAnimationFrame(animate);
       } else {
         setCurrentRotation(finalRotation % 360);
         setSpinning(false);
         setResult(prize);
-
-        // Save spin date
         localStorage.setItem(STORAGE_KEY, new Date().toISOString());
         setCanSpin(false);
-
-        // Coupon save karo agar mila
         if (prize.code) {
           const couponData = { code: prize.code, discount: prize.discount, type: prize.type, label: prize.label };
           localStorage.setItem(COUPON_KEY, JSON.stringify(couponData));
@@ -176,7 +154,6 @@ const SpinWheel = () => {
         }
       }
     };
-
     animRef.current = requestAnimationFrame(animate);
   };
 
@@ -188,18 +165,15 @@ const SpinWheel = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleClose = () => {
-    setShow(false);
-    setResult(null);
-  };
+  const handleClose = () => { setShow(false); setResult(null); };
+
+  // Admin ne off kiya hai toh dikhao hi mat
+  if (!isActive || !prizes.length) return null;
 
   return (
     <>
-      {/* Floating Button */}
-      <button
-        onClick={() => setShow(true)}
-        className="fixed right-4 bottom-24 md:bottom-6 z-50 flex flex-col items-center gap-1 group"
-      >
+      <button onClick={() => setShow(true)}
+        className="fixed right-4 bottom-24 md:bottom-6 z-50 flex flex-col items-center gap-1 group">
         <div className="relative w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110 active:scale-95"
           style={{ background: 'linear-gradient(135deg,#6C3AE8,#C084FC)' }}>
           <span className="text-2xl">🎡</span>
@@ -214,19 +188,14 @@ const SpinWheel = () => {
         </span>
       </button>
 
-      {/* Modal */}
       {show && (
         <div className="fixed inset-0 bg-black/85 z-[998] flex items-center justify-center p-4">
           <div className="relative w-full max-w-sm bg-[#0f0f1a] border border-purple-500/30 rounded-3xl overflow-hidden shadow-2xl"
             style={{ boxShadow: '0 0 60px rgba(108,58,232,0.3)' }}>
-
-            {/* Close */}
             <button onClick={handleClose}
               className="absolute top-4 right-4 z-10 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition">
               <X size={16} className="text-white" />
             </button>
-
-            {/* Header */}
             <div className="text-center pt-6 pb-4 px-6"
               style={{ background: 'linear-gradient(135deg,rgba(108,58,232,0.3),rgba(192,132,252,0.1))' }}>
               <div className="text-3xl mb-1">🎡</div>
@@ -235,18 +204,11 @@ const SpinWheel = () => {
                 {canSpin ? 'Aaj ka spin karo aur coupon jeeto!' : 'Aaj ka spin ho gaya! Kal wapas aao 😊'}
               </p>
             </div>
-
-            {/* Wheel */}
             <div className="flex justify-center py-4 px-6">
-              <div style={{
-                transform: `rotate(${rotation}deg)`,
-                transition: spinning ? 'none' : 'transform 0.1s',
-              }}>
-                <WheelCanvas rotation={0} prizes={PRIZES} />
+              <div style={{ transform: `rotate(${rotation}deg)`, transition: spinning ? 'none' : 'transform 0.1s' }}>
+                <WheelCanvas prizes={prizes} />
               </div>
             </div>
-
-            {/* Result */}
             {result ? (
               <div className="px-6 pb-6">
                 {result.code ? (
@@ -270,7 +232,7 @@ const SpinWheel = () => {
                   </div>
                 )}
                 <button onClick={handleClose}
-                  className="w-full py-3 rounded-2xl font-bold text-white text-sm transition"
+                  className="w-full py-3 rounded-2xl font-bold text-white text-sm"
                   style={{ background: 'linear-gradient(135deg,#6C3AE8,#C084FC)' }}>
                   {result.code ? 'Shopping Karo! 🛍️' : 'Theek Hai'}
                 </button>
@@ -284,18 +246,12 @@ const SpinWheel = () => {
                     <p className="text-gray-400 text-xs">{savedCoupon.label}</p>
                   </div>
                 )}
-                <button
-                  onClick={handleSpin}
-                  disabled={!canSpin || spinning}
-                  className="w-full py-3 rounded-2xl font-bold text-white text-sm transition disabled:opacity-50 flex items-center justify-center gap-2"
+                <button onClick={handleSpin} disabled={!canSpin || spinning}
+                  className="w-full py-3 rounded-2xl font-bold text-white text-sm disabled:opacity-50 flex items-center justify-center gap-2"
                   style={{ background: 'linear-gradient(135deg,#6C3AE8,#C084FC)' }}>
-                  {spinning ? (
-                    <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Spinning...</>
-                  ) : canSpin ? (
-                    <><Zap size={16} /> Spin Karo!</>
-                  ) : (
-                    <><Gift size={16} /> Kal Wapas Aao!</>
-                  )}
+                  {spinning ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Spinning...</>
+                    : canSpin ? <><Zap size={16} /> Spin Karo!</>
+                    : <><Gift size={16} /> Kal Wapas Aao!</>}
                 </button>
                 <p className="text-gray-600 text-[10px] text-center mt-2">Din mein sirf 1 spin</p>
               </div>

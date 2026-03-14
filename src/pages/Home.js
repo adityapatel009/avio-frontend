@@ -559,7 +559,7 @@ const Home = () => {
       
       <MarqueeTicker />
       <div className="max-w-7xl mx-auto px-4">
-        <DealOfTheDay />
+        
         <StoryCircles />
         <TrustBar />
         <LimitedTimeDeals />
@@ -620,6 +620,7 @@ const Home = () => {
         <RecentlyViewedSection />
       </div>
       <LiveOrderFeed />
+      <DealOfTheDay />
       <SpinWheel />
       <Footer />
     </div>
