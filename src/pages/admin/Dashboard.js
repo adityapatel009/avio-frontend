@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { adminGetOrders, getProducts } from '../../utils/api';
 import LowStockWidget from './LowStockWidget';
-import AdminDealOfDay from './AdminDealOfDay';
+import AdminDealOfDay from '../../components/admin/AdminDealOfDay';
 
 const MiniBarChart = ({ data, color = 'bg-gold' }) => {
   const max = Math.max(...data, 1);
