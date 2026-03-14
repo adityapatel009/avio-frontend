@@ -554,9 +554,10 @@ const Home = () => {
       <WelcomeOverlay />
 <FlashSaleBanner />
       <HeroSlider />
-      <DealOfTheDay />
+      
       <MarqueeTicker />
       <div className="max-w-7xl mx-auto px-4">
+        <DealOfTheDay />
         <StoryCircles />
         <TrustBar />
         <LimitedTimeDeals />
