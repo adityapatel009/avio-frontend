@@ -55,7 +55,9 @@ const OrderSuccess = ({ orderId, onContinue }) => (
     </div>
   </div>
 );
-
+const { markCartRecovered } = useCart();
+// Order place hone ke baad:
+await markCartRecovered();
 // ─── ADDRESS FORM ────────────────────────────────────────
 const AddressForm = ({ initial = {}, onSave, onCancel }) => {
   const [form, setForm] = useState({
