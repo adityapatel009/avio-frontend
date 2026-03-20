@@ -4,6 +4,15 @@ import toast from 'react-hot-toast';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 const STORAGE_KEY = 'avio_spin_last';
+const getRandomPrize = (prizes) => {
+  const total = prizes.reduce((sum, p) => sum + p.probability, 0);
+  let rand = Math.random() * total;
+  for (const prize of prizes) {
+    rand -= prize.probability;
+    if (rand <= 0) return prize;
+  }
+  return prizes[0];
+};
 const COUPON_KEY = 'avio_spin_coupon';
 const STREAK_KEY = 'avio_spin_streak';
 
