@@ -272,7 +272,10 @@ const OrderCard = ({ order, onUpdate, onDelete, updating, deleting }) => {
                       className="w-12 h-12 object-cover rounded-lg border border-border shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-white text-sm font-medium line-clamp-1">{item.productName}</p>
-                      <p className="text-gray-400 text-xs">Qty: {item.quantity} × ₹{item.price}</p>
+                      <p className="text-gray-400 text-xs">
+  Qty: {item.quantity} × ₹{item.price}
+  {item.selectedSize && <span className="ml-2 bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded-full text-[10px] font-bold">Size: {item.selectedSize}</span>}
+</p>
                     </div>
                     <p className="text-gold font-bold text-sm shrink-0">₹{item.price * item.quantity}</p>
                   </div>
